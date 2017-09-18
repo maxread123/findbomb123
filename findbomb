@@ -1,0 +1,100 @@
+import socket
+ 
+ 
+host = '127.0.0.1'
+port = 3210
+ 
+client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+client_socket.connect((host,port))
+print ('Spojeni ste na FIND_BOMB')
+odgovor=1
+print ('Kratke upute  ')
+gameOver = False
+while gameOver != True:
+    poruka = input('>> ')
+    print ("Od usera: ",poruka)
+    encodedMessage = poruka.encode('UTF-8','strict')
+    print ("Od usera encoded: ", encodedMessage)
+    client_socket.send(encodedMessage)
+    #zaprimi poruku
+    odgovor_servera = client_socket.recv(1024)
+    print ("Odgovor servera kodiran: ",odgovor_servera)
+    decodedResponse = odgovor_servera.decode('UTF-8')
+    print ("Odgovor servera dekodiran: ", decodedResponse)
+ 
+    if decodedResponse!='Bingo':
+        print (decodedResponse)
+        odgovor = odgovor + 1
+    else:
+         print ('Bravo,pogodili ste lokaciju bombe iz ',odgovor,'. pokusaja!')
+         gameOver = True
+ 
+ 
+client_socket.close()
+
+#############################################
+
+from socket import *
+import sys
+from random import randint
+
+host = ''
+port = 3210
+
+s = socket(AF_INET,SOCK_STREAM)
+s.bind((host,port))
+s.listen(1)
+
+n = int(sys.argv[1])
+a = randint(1,n)
+b = randint(1,n)
+odgovor = 1
+bomba = (a,b)
+print ('Bomba je postavljena na ',bomba,'')
+
+client_sock, client_adr = s.accept()
+print ('Klijent ',client_adr,' se spojio na FIND_BOMB')
+
+while True:
+  # zapirmi poruku
+
+  encodedMessage = client_sock.recv(1024)
+  print ("Od klijenta: ",encodedMessage)
+  message = encodedMessage.decode('UTF-8')
+  print ("Od klijenta dekodirano: ", message)
+
+  if message=="":
+    break
+
+  pokusaj = eval(message)
+  print (pokusaj)
+  c = pokusaj[0]
+  d = pokusaj[1]
+
+  pokusaj = (c,d)
+  # promijeni poruku
+  if (pokusaj)!=bomba:
+    print ("Klijent je poslao ",message)
+    odgovor+=1
+
+    if c==a: k = " "
+    else:
+       if c<a: k = "DESNO"
+       else: k = "LIJEVO"
+
+
+    if d==b: j=" "
+    else:
+        if d<b: j="GORE"
+        else: j="DOLJE"
+
+    response = str(k)+str(' ')+str(j)
+    print ("Response: ", response)
+    client_sock.send(response.encode())
+  else:
+    print ("Klijent je poslao ",message," i otkrio lokaciju! Kraj.")
+    result = "Bingo"
+    client_sock.send(result.encode('UTF-8'))
+    break
+
+s.close()
